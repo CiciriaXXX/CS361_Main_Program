@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="project://database/Assets/Editor/ColorPaletteTool/UI/USS/ColorPaletteTool.uss?fileID=7433441132597879392&amp;guid=c9df379d14a90c1439b8e02deb2b301f&amp;type=3#ColorPaletteTool" />
+    <ui:VisualElement name="rowRoot" class="palette-row">
+        <ui:VisualElement style="flex-grow: 1;">
+            <ui:Label name="paletteName" text="Palette Name" class="palette-row__name" />
+            <ui:VisualElement name="swatchRow" class="palette-row__swatches" />
+        </ui:VisualElement>
+        <ui:Button name="deleteBtn" text="Delete" style="border-left-color: rgb(87, 32, 32); border-right-color: rgb(87, 32, 32); border-top-color: rgb(87, 32, 32); border-bottom-color: rgb(87, 32, 32); background-color: rgb(207, 75, 75); height: 21px; width: 55px;" />
+    </ui:VisualElement>
+</ui:UXML>

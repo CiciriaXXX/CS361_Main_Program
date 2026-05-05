@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="project://database/Assets/Editor/ColorPaletteTool/UI/USS/ColorPaletteTool.uss?fileID=7433441132597879392&amp;guid=c9df379d14a90c1439b8e02deb2b301f&amp;type=3#ColorPaletteTool" />
+    <ui:VisualElement class="view-root" style="flex-grow: 1;">
+        <ui:VisualElement class="list-header">
+            <ui:VisualElement>
+                <ui:Label name="titleLabel" text="Saved Palettes" class="list-title" />
+                <ui:Label text="Organize your game&apos;s color sets. Click a palette to edit." class="list-subtitle" />
+            </ui:VisualElement>
+            <ui:Button name="addPaletteBtn" text="+ New Palette" style="height: 32px; width: 103px; border-left-color: rgb(45, 99, 22); border-right-color: rgb(45, 99, 22); border-top-color: rgb(45, 99, 22); border-bottom-color: rgb(45, 99, 22); background-color: rgb(58, 161, 28);" />
+        </ui:VisualElement>
+        <ui:VisualElement class="divider" />
+        <ui:ScrollView name="paletteListContainer" vertical-scroller-visibility="Auto" style="flex-grow: 1;" />
+        <ui:Label name="emptyHint" text="No palettes yet. Click + New Palette to create one." class="list-empty-hint" />
+    </ui:VisualElement>
+</ui:UXML>

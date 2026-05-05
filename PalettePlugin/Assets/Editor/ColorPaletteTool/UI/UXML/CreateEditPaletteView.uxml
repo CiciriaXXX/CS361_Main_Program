@@ -1,0 +1,63 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="project://database/Assets/Editor/ColorPaletteTool/UI/USS/ColorPaletteTool.uss?fileID=7433441132597879392&amp;guid=c9df379d14a90c1439b8e02deb2b301f&amp;type=3#ColorPaletteTool" />
+    <ui:VisualElement class="view-root" style="flex-grow: 1;">
+        <ui:VisualElement class="top-bar">
+            <ui:Button name="backBtn" text="Back to Palette List" style="font-size: 12px;" />
+            <ui:VisualElement class="top-bar__title-area">
+                <ui:VisualElement class="top-bar__title-row">
+                    <ui:Label name="pageTitle" text="Create Palette" class="page-title" />
+                    <ui:Button name="helpBtn" text="?" tooltip="1. Name your palette.&#10;2. Find a color via sliders or HEX.&#10;3. Click Add Color.&#10;4. Right click to remove swatches you don&apos;t need.&#10;5. Save Palette to keep changes." class="btn-help" />
+                </ui:VisualElement>
+                <ui:Label name="editingTag" text="editing: -" class="editing-tag" style="display: none;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="name-section" style="width: 389px;">
+            <ui:Label text="PALETTE NAME" class="section-label" style="font-size: 12px;" />
+            <ui:TextField name="nameField" max-length="-1" is-delayed="true" hide-mobile-input="false" style="opacity: 1;" />
+            <ui:Label text="Required. Each palette must have a unique name." name="nameNotice" class="name-hint" />
+            <ui:Label name="nameError" text="Palette name cannot be empty" class="error-label" />
+        </ui:VisualElement>
+        <ui:VisualElement class="add-color-section">
+            <ui:Label text="ADD COLOR" class="section-label" style="font-size: 12px;" />
+            <ui:VisualElement class="add-color-row">
+                <ui:VisualElement class="slider-controls">
+                    <ui:VisualElement class="slider-row">
+                        <ui:Label text="R" class="slider-channel-label" />
+                        <ui:Slider name="sliderR" low-value="0" high-value="255" value="200" style="flex-grow: 1; width: 265px;" />
+                        <ui:Label name="sliderRValue" text="200" class="slider-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="slider-row">
+                        <ui:Label text="G" class="slider-channel-label" />
+                        <ui:Slider name="sliderG" low-value="0" high-value="255" value="80" style="flex-grow: 1; width: 265px;" />
+                        <ui:Label name="sliderGValue" text="80" class="slider-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="slider-row">
+                        <ui:Label text="B" class="slider-channel-label" />
+                        <ui:Slider name="sliderB" low-value="0" high-value="255" value="50" style="flex-grow: 1; width: 265px;" />
+                        <ui:Label name="sliderBValue" text="50" class="slider-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="hex-row" style="height: 26px;">
+                        <ui:Label text="HEX #" class="hex-label" />
+                        <ui:TextField name="hexField" value="C85032" max-length="6" style="width: 65px;" />
+                    </ui:VisualElement>
+                    <ui:Label name="hexError" text="Invalid HEX. Use 6 hex digits (0-9, A-F), e.g. FF5733" class="error-label" />
+                    <ui:Label text="You can use RGB slider OR a 6-digit hex value, e.g. FF5733" name="addNotice" class="hex-hint" style="width: 246px; height: 13px;" />
+                </ui:VisualElement>
+                <ui:VisualElement class="preview-area">
+                    <ui:VisualElement name="colorPreview" class="color-preview" />
+                    <ui:Label text="preview" class="preview-label" />
+                    <ui:Button name="addColorBtn" text="+ Add Color" style="opacity: 1; flex-shrink: 0; position: relative; width: 78px; height: 22px; border-top-width: 2px; font-size: 12px;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="added-color-section" style="height: 29px;">
+            <ui:Label text="ADDED COLOR" class="section-label" style="font-size: 12px;" />
+            <ui:VisualElement name="swatchContainer" class="swatch-container" />
+            <ui:Label text="Use &quot;+ Add Color&quot; to add a swatch." name="swatchNotice" class="swatch-hint" />
+        </ui:VisualElement>
+        <ui:VisualElement class="divider" />
+        <ui:VisualElement class="save-row">
+            <ui:Button name="saveBtn" text="Save Palette" style="color: rgb(255, 255, 255); border-left-color: rgb(56, 94, 17); border-right-color: rgb(56, 94, 17); border-top-color: rgb(56, 94, 17); border-bottom-color: rgb(56, 94, 17); -unity-background-image-tint-color: rgb(255, 255, 255); background-color: rgb(82, 130, 36); font-size: 14px;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

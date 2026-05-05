@@ -1,0 +1,400 @@
+/* ============================================================
+   ColorPaletteTool.uss
+   全局样式表，三个视图共用
+   在 UI Builder 里可以直接修改这里的值
+   ============================================================ */
+
+/* ---------- 颜色变量（改这里影响全局） ---------- */
+:root {
+    --color-bg-primary: rgb(50, 50, 50);
+    --color-bg-secondary: rgb(60, 60, 60);
+    --color-bg-row: rgb(56, 56, 56);
+    --color-bg-row-hover: rgb(68, 68, 68);
+    --color-bg-input: rgb(42, 42, 42);
+
+    --color-text-primary: rgb(220, 220, 220);
+    --color-text-secondary: rgb(160, 160, 160);
+    --color-text-hint: rgb(120, 120, 120);
+
+    --color-accent-green: rgb(52, 152, 86);
+    --color-accent-green-hover: rgb(62, 172, 100);
+    --color-accent-red: rgb(180, 60, 60);
+    --color-accent-red-hover: rgb(200, 70, 70);
+    --color-accent-neutral: rgb(80, 80, 80);
+    --color-accent-neutral-hover: rgb(95, 95, 95);
+
+    --color-divider: rgb(40, 40, 40);
+    --color-border: rgb(70, 70, 70);
+    --color-error: rgb(220, 80, 80);
+    --color-tag-editing: rgb(40, 130, 70);
+
+    --radius-sm: 3px;
+    --radius-md: 5px;
+    --radius-circle: 50%;
+}
+
+/* ---------- 共用基础 ---------- */
+.view-root {
+    padding: 14px;
+    flex-grow: 1;
+    background-color: var(--color-bg-primary);
+}
+
+.section-label {
+    font-size: 10px;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+    -unity-font-style: bold;
+}
+
+.divider {
+    height: 1px;
+    background-color: var(--color-divider);
+    margin-top: 8px;
+    margin-bottom: 10px;
+}
+
+.error-label {
+    font-size: 10px;
+    color: var(--color-error);
+    display: none;
+    margin-top: 3px;
+}
+
+.error-label--visible {
+    display: flex;
+}
+
+/* ---------- 按钮 ---------- */
+.btn-primary {
+    background-color: var(--color-accent-green);
+    color: var(--color-text-primary);
+    border-width: 0;
+    border-radius: var(--radius-md);
+    padding: 6px 14px;
+    font-size: 12px;
+    cursor: link;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-accent-green-hover);
+}
+
+.btn-primary:disabled {
+    background-color: var(--color-accent-neutral);
+    color: var(--color-text-hint);
+}
+
+.btn-danger {
+    background-color: var(--color-accent-red);
+    color: var(--color-text-primary);
+    border-width: 0;
+    border-radius: var(--radius-md);
+    padding: 4px 12px;
+    font-size: 11px;
+    cursor: link;
+}
+
+.btn-danger:hover {
+    background-color: var(--color-accent-red-hover);
+}
+
+.btn-secondary {
+    background-color: var(--color-accent-neutral);
+    color: var(--color-text-primary);
+    border-width: 0;
+    border-radius: var(--radius-md);
+    padding: 6px 14px;
+    font-size: 12px;
+    cursor: link;
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-accent-neutral-hover);
+}
+
+.btn-back {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    border-width: 1px;
+    border-color: var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: link;
+}
+
+.btn-back:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-text-secondary);
+}
+
+.btn-help {
+    width: 18px;
+    height: 18px;
+    border-radius: var(--radius-circle);
+    background-color: var(--color-accent-neutral);
+    color: var(--color-text-secondary);
+    border-width: 0;
+    font-size: 10px;
+    margin-left: 6px;
+    padding: 0;
+    cursor: link;
+}
+
+.btn-help:hover {
+    background-color: var(--color-accent-neutral-hover);
+    color: var(--color-text-primary);
+}
+
+.btn-add-color {
+    background-color: var(--color-accent-neutral);
+    color: var(--color-text-primary);
+    border-width: 0;
+    border-radius: var(--radius-md);
+    padding: 6px 10px;
+    font-size: 11px;
+    margin-top: 8px;
+    cursor: link;
+}
+
+.btn-add-color:hover {
+    background-color: var(--color-accent-neutral-hover);
+}
+
+/* ---------- 输入框 ---------- */
+.input-field {
+    background-color: var(--color-bg-input);
+    border-color: var(--color-border);
+    border-width: 1px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+    font-size: 12px;
+    padding: 4px 6px;
+}
+
+.input-field:focus {
+    border-color: rgb(100, 140, 200);
+}
+
+.input-hex {
+    width: 90px;
+    background-color: var(--color-bg-input);
+    border-color: var(--color-border);
+    border-width: 1px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+    font-size: 11px;
+    padding: 3px 6px;
+}
+
+/* ---------- PaletteListView ---------- */
+.list-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.list-title {
+    font-size: 18px;
+    color: var(--color-text-primary);
+    -unity-font-style: bold;
+    margin-bottom: 2px;
+}
+
+.list-subtitle {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+}
+
+.palette-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    background-color: var(--color-bg-row);
+    border-radius: var(--radius-md);
+    cursor: link;
+}
+
+.palette-row:hover {
+    background-color: var(--color-bg-row-hover);
+}
+
+.palette-row__name {
+    font-size: 13px;
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+}
+
+.palette-row__swatches {
+    flex-direction: row;
+}
+
+.palette-row__swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: var(--radius-sm);
+    margin-right: 3px;
+}
+
+.list-empty-hint {
+    color: var(--color-text-hint);
+    font-size: 12px;
+    margin-top: 20px;
+    -unity-text-align: upper-center;
+}
+
+/* ---------- CreateEditPaletteView ---------- */
+.top-bar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.top-bar__title-area {
+    align-items: center;
+}
+
+.top-bar__title-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.page-title {
+    font-size: 15px;
+    color: var(--color-text-primary);
+    -unity-font-style: bold;
+}
+
+.editing-tag {
+    font-size: 10px;
+    color: white;
+    background-color: var(--color-tag-editing);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    margin-top: 3px;
+}
+
+/* 名字输入区 */
+.name-section {
+    margin-bottom: 14px;
+}
+
+.name-hint {
+    font-size: 10px;
+    color: var(--color-text-hint);
+    margin-top: 3px;
+}
+
+/* Add Color 区域 */
+.add-color-section {
+    margin-bottom: 14px;
+}
+
+.add-color-row {
+    flex-direction: row;
+}
+
+.slider-controls {
+    flex-grow: 1;
+    margin-right: 12px;
+}
+
+.slider-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.slider-channel-label {
+    width: 12px;
+    font-size: 11px;
+    color: var(--color-text-secondary);
+}
+
+.slider-value-label {
+    width: 28px;
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    -unity-text-align: upper-right;
+}
+
+.hex-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.hex-label {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    margin-right: 6px;
+    width: 38px;
+}
+
+.hex-hint {
+    font-size: 10px;
+    color: var(--color-text-hint);
+    margin-top: 4px;
+}
+
+/* 预览区 */
+.preview-area {
+    align-items: center;
+    width: 80px;
+}
+
+.color-preview {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-md);
+    background-color: rgb(200, 80, 50);
+}
+
+.preview-label {
+    font-size: 10px;
+    color: var(--color-text-hint);
+    margin-top: 4px;
+    -unity-text-align: upper-center;
+}
+
+/* Added Color 色块区 */
+.added-color-section {
+    margin-bottom: 14px;
+}
+
+.swatch-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.added-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    margin-right: 5px;
+    margin-bottom: 5px;
+    cursor: link;
+    border-width: 1px;
+    border-color: rgba(255,255,255,0.08);
+}
+
+.added-swatch:hover {
+    border-color: rgba(255,255,255,0.4);
+    scale: 1.1;
+}
+
+.swatch-hint {
+    font-size: 10px;
+    color: var(--color-text-hint);
+}
+
+/* Save 按钮行 */
+.save-row {
+    margin-top: 6px;
+}
