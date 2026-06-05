@@ -142,10 +142,15 @@
 
 .palette-row__swatches {
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     overflow: hidden;
 }
-
+.palette-row__chips {
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
 .palette-row__swatch {
     width: 14px;
     height: 14px;
@@ -155,7 +160,20 @@
     border-radius: var(--radius-sm);
     margin-right: 3px;
 }
-
+.palette-row__chip {
+    flex-direction: row;
+    align-items: center;
+    
+    border-color: rgb(80, 80, 80);
+    border-width: 1px;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-right: 2px;
+    margin-bottom: 2px;
+}
+.palette-chip__label {
+    font-size: 11px;
+}
 .list-empty-hint {
     color: var(--color-text-hint);
     font-size: 12px;
@@ -207,7 +225,50 @@
     color: var(--color-text-hint);
     margin-top: 3px;
 }
+/* tag section */
+.tag-section{
+    margin-bottom: 14px;
+    flex-shrink: 0;
+}
+.tag-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
 
+.tag-input-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.tag-field {
+    margin-right: 4px;
+}
+
+.tag-chip {
+    flex-direction: row;
+    align-items: center;
+    border-color: rgb(80, 80, 80);
+    border-width: 1px;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 2px;
+}
+
+.tag-chip__label {
+    font-size: 11px;
+    margin-right: 4px;
+}
+
+.tag-chip__remove {
+    font-size: 10px;
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    /* 让叉按钮背景透明，融入 chip */
+    background-color: rgba(0,0,0,0);
+    border-width: 0;
+}
 /* Add Color 区域 */
 .add-color-section {
     margin-bottom: 14px;

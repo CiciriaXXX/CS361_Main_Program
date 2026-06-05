@@ -17,6 +17,14 @@
             <ui:Label text="Required. Each palette must have a unique name." name="nameNotice" class="name-hint" />
             <ui:Label name="nameError" text="Palette name cannot be empty" class="error-label" />
         </ui:VisualElement>
+        <ui:VisualElement name="TagSection" class="tag-section" style="flex-grow: 1;">
+            <ui:Label tabindex="-1" text="TAGS" parse-escape-sequences="true" display-tooltip-when-elided="true" class="section-label" style="font-size: 12px;" />
+            <ui:VisualElement name="tagContainer" class="tag-container" style="flex-grow: 1;" />
+            <ui:VisualElement class="tag-input-row" style="flex-grow: 1; -unity-text-align: upper-left;">
+                <ui:TextField picking-mode="Ignore" name="tagField" class="tag-field" style="transform-origin: left; left: auto; right: auto; position: relative; flex-basis: auto; flex-direction: row; width: 115px;" />
+                <ui:Button text="Add Tag" parse-escape-sequences="true" display-tooltip-when-elided="true" name="addTagBtn" />
+            </ui:VisualElement>
+        </ui:VisualElement>
         <ui:VisualElement class="add-color-section">
             <ui:Label text="ADD COLOR" class="section-label" style="font-size: 12px;" />
             <ui:VisualElement class="add-color-row">

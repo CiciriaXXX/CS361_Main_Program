@@ -6,7 +6,7 @@ public class PaletteListView : VisualElement
 {
     const string UxmlPath = "Assets/Editor/ColorPaletteTool/UI/UXML/PaletteListView.uxml";
     const string RowTemplatePath = "Assets/Editor/ColorPaletteTool/UI/UXML/PaletteRowItem.uxml";
-    const int MaxVisibleListSwatches = 16;
+    const int MaxVisibleListSwatches = 30;
 
     PaletteLibrary _library;
     ColorPaletteTool _window;
@@ -62,6 +62,18 @@ public class PaletteListView : VisualElement
                 swatch.style.backgroundColor = color.ToUnityColor();
                 swatch.tooltip = $"#{color.ToHex()}";
                 swatchRow.Add(swatch);
+            }
+            
+            var chipRow = row.Q<VisualElement>("chipRow");
+            for (int i = 0; i < pal.tags.Count ; i++)
+            {
+                var tag = pal.tags[i];
+                var chip = new VisualElement();
+                chip.AddToClassList("palette-row__chip");
+                var label = new Label(tag);
+                label.AddToClassList("palette-chip__label");
+                chip.Add (label);
+                chipRow.Add(chip);
             }
 
             var rowRoot = row.Q<VisualElement>("rowRoot");

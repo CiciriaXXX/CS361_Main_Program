@@ -18,12 +18,14 @@ public class CreateEditPaletteView : VisualElement
 
     string _paletteName = "";
     List<ColorEntry> _colors = new List<ColorEntry>();
+    List<string> _tags = new List<string>();
 
     float _r = 200, _g = 80, _b = 50;
 
     TextField _nameField;
     Label _nameError;
     Label _nameNotice;
+    VisualElement _tagContainer;
     Slider _sliderR, _sliderG, _sliderB;
     Label _sliderRValue, _sliderGValue, _sliderBValue;
     TextField _hexField;
@@ -52,11 +54,13 @@ public class CreateEditPaletteView : VisualElement
         {
             _paletteName = _editingPalette.name;
             _colors = CloneColors(_editingPalette.colors);
+            _tags =  new List<string>(_editingPalette.tags);
         }
         else
         {
             _paletteName = initialName ?? "";
             _colors = initialColors != null ? CloneColors(initialColors) : new List<ColorEntry>();
+            _tags = new List<string>();
         }
 
         var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath);
@@ -98,6 +102,19 @@ public class CreateEditPaletteView : VisualElement
             HideError(_nameError);
             _nameNotice.style.display = DisplayStyle.Flex;
         });
+        
+        _tagContainer = container.Q<VisualElement>("tagContainer");
+        RefreshTags();
+        var tagField = container.Q<TextField>("tagField");
+        container.Q<Button>("addTagBtn").clicked += () =>
+        {
+            string newTag = tagField.value.Trim();
+            if (string.IsNullOrEmpty(newTag) || _tags.Contains(newTag))
+                return;
+            _tags.Add(newTag);
+            tagField.SetValueWithoutNotify("");
+            RefreshTags();
+        };
 
         _sliderRValue = container.Q<Label>("sliderRValue");
         _sliderGValue = container.Q<Label>("sliderGValue");
@@ -228,6 +245,31 @@ public class CreateEditPaletteView : VisualElement
         }
     }
 
+    void RefreshTags()
+    {
+        _tagContainer.Clear();
+        foreach (var tag in _tags)
+        {
+            var t = tag;
+            
+            var chip = new VisualElement();
+            chip.AddToClassList("tag-chip");
+            var label = new Label(t);
+            label.AddToClassList("tag-chip__label");
+            var removeBtn = new Button(() =>
+            {
+                _tags.Remove(t);
+                RefreshTags();
+            });
+            removeBtn.text = "✕";
+            removeBtn.AddToClassList("tag-chip__remove");
+            
+            chip.Add(label);
+            chip.Add(removeBtn);
+            _tagContainer.Add(chip);
+        }
+    }
+
     void TrySave()
     {
         if (string.IsNullOrWhiteSpace(_paletteName))
@@ -252,13 +294,15 @@ public class CreateEditPaletteView : VisualElement
         {
             _editingPalette.name = _paletteName;
             _editingPalette.colors = _colors;
+            _editingPalette.tags = _tags;
         }
         else
         {
             _library.palettes.Add(new Palette
             {
                 name = _paletteName,
-                colors = _colors
+                colors = _colors,
+                tags = _tags
             });
         }
 
@@ -278,8 +322,7 @@ public class CreateEditPaletteView : VisualElement
             return;
         }
 
-        _rampButton.SetEnabled(false);
-
+        _rampButton.SetEnabled(false); // disable the button to protect async call
         RampResult result = await PaletteRampService.CreateRampAsync(_paletteName, _colors);
         _rampButton.SetEnabled(true);
 

@@ -3,6 +3,7 @@
     <ui:VisualElement name="rowRoot" class="palette-row">
         <ui:VisualElement style="flex-grow: 1;">
             <ui:Label name="paletteName" text="Palette Name" class="palette-row__name" />
+            <ui:VisualElement name="chipRow" class="palette-row__chips" style="flex-grow: 1;" />
             <ui:VisualElement name="swatchRow" class="palette-row__swatches" />
         </ui:VisualElement>
         <ui:Button name="deleteBtn" text="Delete" style="border-left-color: rgb(87, 32, 32); border-right-color: rgb(87, 32, 32); border-top-color: rgb(87, 32, 32); border-bottom-color: rgb(87, 32, 32); background-color: rgb(207, 75, 75); height: 21px; width: 55px;" />
