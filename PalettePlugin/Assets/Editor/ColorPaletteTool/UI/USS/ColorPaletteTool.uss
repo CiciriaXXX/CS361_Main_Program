@@ -67,69 +67,6 @@
 }
 
 /* ---------- 按钮 ---------- */
-.btn-primary {
-    background-color: var(--color-accent-green);
-    color: var(--color-text-primary);
-    border-width: 0;
-    border-radius: var(--radius-md);
-    padding: 6px 14px;
-    font-size: 12px;
-    cursor: link;
-}
-
-.btn-primary:hover {
-    background-color: var(--color-accent-green-hover);
-}
-
-.btn-primary:disabled {
-    background-color: var(--color-accent-neutral);
-    color: var(--color-text-hint);
-}
-
-.btn-danger {
-    background-color: var(--color-accent-red);
-    color: var(--color-text-primary);
-    border-width: 0;
-    border-radius: var(--radius-md);
-    padding: 4px 12px;
-    font-size: 11px;
-    cursor: link;
-}
-
-.btn-danger:hover {
-    background-color: var(--color-accent-red-hover);
-}
-
-.btn-secondary {
-    background-color: var(--color-accent-neutral);
-    color: var(--color-text-primary);
-    border-width: 0;
-    border-radius: var(--radius-md);
-    padding: 6px 14px;
-    font-size: 12px;
-    cursor: link;
-}
-
-.btn-secondary:hover {
-    background-color: var(--color-accent-neutral-hover);
-}
-
-.btn-back {
-    background-color: var(--color-bg-secondary);
-    color: var(--color-text-secondary);
-    border-width: 1px;
-    border-color: var(--color-border);
-    border-radius: var(--radius-md);
-    padding: 4px 10px;
-    font-size: 11px;
-    cursor: link;
-}
-
-.btn-back:hover {
-    color: var(--color-text-primary);
-    border-color: var(--color-text-secondary);
-}
-
 .btn-help {
     width: 18px;
     height: 18px;
@@ -148,35 +85,7 @@
     color: var(--color-text-primary);
 }
 
-.btn-add-color {
-    background-color: var(--color-accent-neutral);
-    color: var(--color-text-primary);
-    border-width: 0;
-    border-radius: var(--radius-md);
-    padding: 6px 10px;
-    font-size: 11px;
-    margin-top: 8px;
-    cursor: link;
-}
-
-.btn-add-color:hover {
-    background-color: var(--color-accent-neutral-hover);
-}
-
 /* ---------- 输入框 ---------- */
-.input-field {
-    background-color: var(--color-bg-input);
-    border-color: var(--color-border);
-    border-width: 1px;
-    border-radius: var(--radius-sm);
-    color: var(--color-text-primary);
-    font-size: 12px;
-    padding: 4px 6px;
-}
-
-.input-field:focus {
-    border-color: rgb(100, 140, 200);
-}
 
 .input-hex {
     width: 90px;

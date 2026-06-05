@@ -50,7 +50,6 @@ public class ImagePaletteWindow : EditorWindow
         rootVisualElement.Add(label);
 
         _urlField = new TextField();
-        _urlField.AddToClassList("input-field");
         rootVisualElement.Add(_urlField);
 
         _errorLabel = new Label();
@@ -58,7 +57,6 @@ public class ImagePaletteWindow : EditorWindow
         rootVisualElement.Add(_errorLabel);
 
         _fetchButton = new Button(() => _ = FetchPreviewAsync()) { text = "Fetch Image" };
-        _fetchButton.AddToClassList("btn-secondary");
         rootVisualElement.Add(_fetchButton);
 
         _preview = new Image();
@@ -66,7 +64,6 @@ public class ImagePaletteWindow : EditorWindow
         rootVisualElement.Add(_preview);
 
         _createButton = new Button(() => _ = CreatePaletteAsync()) { text = "Create Palette" };
-        _createButton.AddToClassList("btn-primary");
         _createButton.style.display = DisplayStyle.None;
         rootVisualElement.Add(_createButton);
     }
