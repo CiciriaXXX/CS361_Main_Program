@@ -1,32 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-/// <summary>
-/// 视图2（创建）和视图3（编辑）共用。
-/// editingPalette == null → Create 模式；否则 → Edit 模式。
-/// </summary>
 public class CreateEditPaletteView : VisualElement
 {
     const string UxmlPath = "Assets/Editor/ColorPaletteTool/UI/UXML/CreateEditPaletteView.uxml";
 
-    // ── 依赖 ──────────────────────────────────────────────
     PaletteLibrary _library;
-    Palette _editingPalette;   // null = Create 模式
+    Palette _editingPalette;
     ColorPaletteTool _window;
 
     bool IsEditMode => _editingPalette != null;
 
-    // ── 临时工作数据（不直接修改原对象，Back 时可丢弃） ──
     string _paletteName = "";
     List<ColorEntry> _colors = new List<ColorEntry>();
 
     float _r = 200, _g = 80, _b = 50;
 
-    // ── UI 元素引用（绑定后缓存，避免重复 Q<>） ──────────
     TextField _nameField;
     Label _nameError;
     Label _nameNotice;
@@ -38,8 +32,17 @@ public class CreateEditPaletteView : VisualElement
     VisualElement _colorPreview;
     VisualElement _swatchContainer;
     Label _swatchNotice;
+    Button _rampButton;
+    Label _rampError;
+    Label _rampSuccess;
+    Image _rampPreview;
 
-    public CreateEditPaletteView(PaletteLibrary library, Palette editingPalette, ColorPaletteTool window)
+    public CreateEditPaletteView(
+        PaletteLibrary library,
+        Palette editingPalette,
+        ColorPaletteTool window,
+        string initialName = "",
+        List<ColorEntry> initialColors = null)
     {
         _library = library;
         _editingPalette = editingPalette;
@@ -47,35 +50,31 @@ public class CreateEditPaletteView : VisualElement
 
         if (IsEditMode)
         {
-            // 深拷贝工作数据，Back 时原对象不变
             _paletteName = _editingPalette.name;
-            _colors = new List<ColorEntry>();
-            foreach (var c in _editingPalette.colors)
-                _colors.Add(new ColorEntry { r = c.r, g = c.g, b = c.b });
+            _colors = CloneColors(_editingPalette.colors);
+        }
+        else
+        {
+            _paletteName = initialName ?? "";
+            _colors = initialColors != null ? CloneColors(initialColors) : new List<ColorEntry>();
         }
 
         var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath);
         if (uxml == null)
         {
-            Debug.LogError($"[ColorPaletteTool] 找不到 UXML：{UxmlPath}");
+            Debug.LogError($"[ColorPaletteTool] UXML not found: {UxmlPath}");
             return;
         }
+
         var container = uxml.Instantiate();
         Add(container);
-
         BindUI(container);
     }
 
-    // ─────────────────────────────────────────────────────
-    //  绑定
-    // ─────────────────────────────────────────────────────
-
     void BindUI(VisualElement container)
     {
-        // Back
         container.Q<Button>("backBtn").clicked += () => _window.ShowPaletteList();
 
-        // 页面标题 & editing tag
         container.Q<Label>("pageTitle").text = IsEditMode ? "Edit Palette" : "Create Palette";
         var editingTag = container.Q<Label>("editingTag");
         if (IsEditMode)
@@ -88,7 +87,6 @@ public class CreateEditPaletteView : VisualElement
             editingTag.style.display = DisplayStyle.None;
         }
 
-        // ── Palette Name ──
         _nameError = container.Q<Label>("nameError");
         _nameNotice = container.Q<Label>("nameNotice");
 
@@ -101,7 +99,6 @@ public class CreateEditPaletteView : VisualElement
             _nameNotice.style.display = DisplayStyle.Flex;
         });
 
-        // ── RGB 滑条 ──
         _sliderRValue = container.Q<Label>("sliderRValue");
         _sliderGValue = container.Q<Label>("sliderGValue");
         _sliderBValue = container.Q<Label>("sliderBValue");
@@ -114,7 +111,6 @@ public class CreateEditPaletteView : VisualElement
         _sliderG.value = _g;
         _sliderB.value = _b;
 
-        // ── HEX 输入 ──
         _hexError = container.Q<Label>("hexError");
         _addNotice = container.Q<Label>("addNotice");
         _hexField = container.Q<TextField>("hexField");
@@ -124,26 +120,26 @@ public class CreateEditPaletteView : VisualElement
             HideError(_hexError);
             _addNotice.style.display = DisplayStyle.Flex;
         });
-        // 失焦时验证并同步回滑条
         _hexField.RegisterCallback<BlurEvent>(_ => ValidateAndApplyHex());
 
-        // ── 颜色预览 ──
         _colorPreview = container.Q<VisualElement>("colorPreview");
         UpdatePreview();
 
-        // ── Add Color 按钮 ──
         container.Q<Button>("addColorBtn").clicked += AddColor;
 
-        // ── 色块容器 ──
         _swatchNotice = container.Q<Label>("swatchNotice");
         _swatchContainer = container.Q<VisualElement>("swatchContainer");
         RefreshSwatches();
 
-        // ── Save 按钮 ──
         container.Q<Button>("saveBtn").clicked += TrySave;
+
+        _rampButton = container.Q<Button>("createRampBtn");
+        _rampError = container.Q<Label>("rampError");
+        _rampSuccess = container.Q<Label>("rampSuccess");
+        _rampPreview = container.Q<Image>("rampPreview");
+        _rampButton.clicked += () => _ = CreateRampAsync();
     }
 
-    // 封装单条滑条的绑定，返回 Slider 引用
     Slider BindSlider(VisualElement container, string sliderName, Label valueLabel, Action<float> onChanged)
     {
         var slider = container.Q<Slider>(sliderName);
@@ -155,35 +151,30 @@ public class CreateEditPaletteView : VisualElement
         return slider;
     }
 
-    // ─────────────────────────────────────────────────────
-    //  事件处理
-    // ─────────────────────────────────────────────────────
-
     void OnSliderChanged()
     {
-        // 滑条改变 → 同步 HEX 输入框
         _hexField.SetValueWithoutNotify(RgbToHex(_r, _g, _b));
         HideError(_hexError);
         _addNotice.style.display = DisplayStyle.Flex;
         UpdatePreview();
     }
 
-    void ValidateAndApplyHex()
+    bool ValidateAndApplyHex()
     {
         string hex = _hexField.value.Trim().TrimStart('#').ToUpper();
         if (!Regex.IsMatch(hex, @"^[0-9A-F]{6}$"))
         {
             _addNotice.style.display = DisplayStyle.None;
             ShowError(_hexError);
-            return;
+            return false;
         }
+
         HideError(_hexError);
 
         _r = Convert.ToInt32(hex.Substring(0, 2), 16);
         _g = Convert.ToInt32(hex.Substring(2, 2), 16);
         _b = Convert.ToInt32(hex.Substring(4, 2), 16);
 
-        // 同步回三条滑条（不触发 ValueChanged 回调，避免循环）
         _sliderR.SetValueWithoutNotify(_r);
         _sliderG.SetValueWithoutNotify(_g);
         _sliderB.SetValueWithoutNotify(_b);
@@ -192,6 +183,7 @@ public class CreateEditPaletteView : VisualElement
         _sliderBValue.text = Mathf.RoundToInt(_b).ToString();
 
         UpdatePreview();
+        return true;
     }
 
     void UpdatePreview()
@@ -201,8 +193,7 @@ public class CreateEditPaletteView : VisualElement
 
     void AddColor()
     {
-        // 如果 HEX 当前有错误，先验证一次
-        if (_hexError.ClassListContains("error-label--visible"))
+        if (!ValidateAndApplyHex())
             return;
 
         _colors.Add(new ColorEntry { r = _r, g = _g, b = _b });
@@ -212,18 +203,11 @@ public class CreateEditPaletteView : VisualElement
     void RefreshSwatches()
     {
         _swatchContainer.Clear();
-        // 如果色板为空显示提示
-        if (_colors.Count == 0)
-        {
-            _swatchNotice.style.display = DisplayStyle.Flex;
-        }
-        else
-        {
-            _swatchNotice.style.display = DisplayStyle.None;
-        }
+        _swatchNotice.style.display = _colors.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+
         for (int i = 0; i < _colors.Count; i++)
         {
-            int index = i; // 闭包捕获索引
+            int index = i;
             var color = _colors[i];
 
             var swatch = new VisualElement();
@@ -233,34 +217,32 @@ public class CreateEditPaletteView : VisualElement
 
             swatch.RegisterCallback<PointerDownEvent>(evt =>
             {
-                if (evt.button == 1) 
+                if (evt.button == 1)
                 {
-                    // 这里执行右键逻辑
                     _colors.RemoveAt(index);
                     RefreshSwatches();
                 }
             });
+
             _swatchContainer.Add(swatch);
         }
     }
 
     void TrySave()
     {
-        // 验证：名字不能为空
         if (string.IsNullOrWhiteSpace(_paletteName))
         {
-            _nameError.text = "⚠ Palette name cannot be empty";
+            _nameError.text = "Palette name cannot be empty";
             ShowError(_nameError);
             _nameNotice.style.display = DisplayStyle.None;
             return;
         }
 
-        // 验证：名字唯一（Edit 模式排除自身）
         bool nameConflict = _library.palettes.Exists(p =>
             p.name == _paletteName && p != _editingPalette);
         if (nameConflict)
         {
-            _nameError.text = "⚠ A palette with this name already exists";
+            _nameError.text = "A palette with this name already exists";
             ShowError(_nameError);
             _nameNotice.style.display = DisplayStyle.None;
             return;
@@ -268,7 +250,6 @@ public class CreateEditPaletteView : VisualElement
 
         if (IsEditMode)
         {
-            // 写回原对象
             _editingPalette.name = _paletteName;
             _editingPalette.colors = _colors;
         }
@@ -284,9 +265,48 @@ public class CreateEditPaletteView : VisualElement
         _window.SaveAndRefresh();
     }
 
-    // ─────────────────────────────────────────────────────
-    //  工具方法
-    // ─────────────────────────────────────────────────────
+    async Task CreateRampAsync()
+    {
+        // The view validates UI state; PaletteRampService owns the microservice call and file output.
+        HideError(_rampError);
+        _rampSuccess.style.display = DisplayStyle.None;
+
+        if (_colors.Count < 2)
+        {
+            _rampError.text = "At least 2 colors are required to create a ramp.";
+            ShowError(_rampError);
+            return;
+        }
+
+        _rampButton.SetEnabled(false);
+
+        RampResult result = await PaletteRampService.CreateRampAsync(_paletteName, _colors);
+        _rampButton.SetEnabled(true);
+
+        if (!result.success)
+        {
+            _rampError.text = result.error;
+            ShowError(_rampError);
+            return;
+        }
+
+        var texture = new Texture2D(2, 2);
+        texture.LoadImage(result.pngBytes);
+        _rampPreview.image = texture;
+        _rampPreview.style.display = DisplayStyle.Flex;
+
+        _rampSuccess.text = $"Success, image saved to {PaletteRampService.OutputFolder}";
+        _rampSuccess.style.display = DisplayStyle.Flex;
+    }
+
+    static List<ColorEntry> CloneColors(List<ColorEntry> colors)
+    {
+        var clone = new List<ColorEntry>();
+        foreach (var c in colors)
+            clone.Add(new ColorEntry { r = c.r, g = c.g, b = c.b });
+
+        return clone;
+    }
 
     static string RgbToHex(float r, float g, float b)
     {
@@ -302,4 +322,5 @@ public class CreateEditPaletteView : VisualElement
     {
         label.RemoveFromClassList("error-label--visible");
     }
+
 }

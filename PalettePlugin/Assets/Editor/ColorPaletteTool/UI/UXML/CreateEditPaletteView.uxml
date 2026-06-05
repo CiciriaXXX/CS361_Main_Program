@@ -50,12 +50,20 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement class="added-color-section" style="height: 29px;">
+        <ui:VisualElement class="added-color-section">
             <ui:Label text="ADDED COLOR" class="section-label" style="font-size: 12px;" />
-            <ui:VisualElement name="swatchContainer" class="swatch-container" />
+            <ui:ScrollView name="swatchScrollView" vertical-scroller-visibility="Auto" horizontal-scroller-visibility="Hidden" class="swatch-scroll">
+                <ui:VisualElement name="swatchContainer" class="swatch-container" />
+            </ui:ScrollView>
             <ui:Label text="Use &quot;+ Add Color&quot; to add a swatch." name="swatchNotice" class="swatch-hint" />
         </ui:VisualElement>
         <ui:VisualElement class="divider" />
+        <ui:VisualElement class="ramp-section">
+            <ui:Button name="createRampBtn" text="Create Ramp From Palette" />
+            <ui:Label name="rampError" class="error-label" />
+            <ui:Label name="rampSuccess" class="success-label" style="display: none;" />
+            <ui:Image name="rampPreview" class="ramp-preview" style="display: none;" />
+        </ui:VisualElement>
         <ui:VisualElement class="save-row">
             <ui:Button name="saveBtn" text="Save Palette" style="color: rgb(255, 255, 255); border-left-color: rgb(56, 94, 17); border-right-color: rgb(56, 94, 17); border-top-color: rgb(56, 94, 17); border-bottom-color: rgb(56, 94, 17); -unity-background-image-tint-color: rgb(255, 255, 255); background-color: rgb(82, 130, 36); font-size: 14px;" />
         </ui:VisualElement>

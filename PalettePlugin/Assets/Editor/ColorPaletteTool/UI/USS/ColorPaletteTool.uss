@@ -49,6 +49,7 @@
 
 .divider {
     height: 1px;
+    flex-shrink: 0;
     background-color: var(--color-divider);
     margin-top: 8px;
     margin-bottom: 10px;
@@ -212,6 +213,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    flex-shrink: 0;
     padding: 8px 10px;
     margin-bottom: 4px;
     background-color: var(--color-bg-row);
@@ -231,11 +233,16 @@
 
 .palette-row__swatches {
     flex-direction: row;
+    flex-wrap: nowrap;
+    overflow: hidden;
 }
 
 .palette-row__swatch {
     width: 14px;
     height: 14px;
+    min-width: 14px;
+    min-height: 14px;
+    flex-shrink: 0;
     border-radius: var(--radius-sm);
     margin-right: 3px;
 }
@@ -253,6 +260,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 14px;
+    flex-shrink: 0;
 }
 
 .top-bar__title-area {
@@ -282,6 +290,7 @@
 /* 名字输入区 */
 .name-section {
     margin-bottom: 14px;
+    flex-shrink: 0;
 }
 
 .name-hint {
@@ -293,6 +302,7 @@
 /* Add Color 区域 */
 .add-color-section {
     margin-bottom: 14px;
+    flex-shrink: 0;
 }
 
 .add-color-row {
@@ -365,17 +375,28 @@
 /* Added Color 色块区 */
 .added-color-section {
     margin-bottom: 14px;
+    flex-shrink: 0;
+}
+
+.swatch-scroll {
+    height: 72px;
+    min-height: 72px;
+    max-height: 72px;
+    flex-shrink: 0;
+    margin-bottom: 4px;
 }
 
 .swatch-container {
     flex-direction: row;
     flex-wrap: wrap;
-    margin-bottom: 4px;
 }
 
 .added-swatch {
     width: 28px;
     height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    flex-shrink: 0;
     border-radius: var(--radius-sm);
     margin-right: 5px;
     margin-bottom: 5px;
@@ -397,4 +418,36 @@
 /* Save 按钮行 */
 .save-row {
     margin-top: 6px;
+    flex-shrink: 0;
+}
+
+.success-label {
+    font-size: 10px;
+    color: var(--color-accent-green-hover);
+    margin-top: 4px;
+}
+
+.ramp-section {
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.ramp-preview {
+    height: 36px;
+    width: 240px;
+    margin-top: 8px;
+    border-width: 1px;
+    border-color: var(--color-border);
+}
+
+.image-preview {
+    width: 300px;
+    height: 160px;
+    align-self: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    -unity-background-scale-mode: scale-to-fit;
+    border-width: 1px;
+    border-color: var(--color-border);
+    background-color: var(--color-bg-secondary);
 }
