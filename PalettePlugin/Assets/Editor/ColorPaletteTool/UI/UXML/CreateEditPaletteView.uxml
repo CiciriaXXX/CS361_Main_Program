@@ -23,7 +23,9 @@
             <ui:VisualElement class="tag-input-row" style="flex-grow: 1; -unity-text-align: upper-left;">
                 <ui:TextField picking-mode="Ignore" name="tagField" class="tag-field" style="transform-origin: left; left: auto; right: auto; position: relative; flex-basis: auto; flex-direction: row; width: 115px;" />
                 <ui:Button text="Add Tag" parse-escape-sequences="true" display-tooltip-when-elided="true" name="addTagBtn" />
+                <ui:Button text="Generate Mood Tags" parse-escape-sequences="true" display-tooltip-when-elided="true" name="generateTagBtn" style="left: 24px;" />
             </ui:VisualElement>
+            <ui:Label name="tagError" text="Palette name cannot be empty" class="error-label" />
         </ui:VisualElement>
         <ui:VisualElement class="add-color-section">
             <ui:Label text="ADD COLOR" class="section-label" style="font-size: 12px;" />

@@ -37,7 +37,6 @@
 .view-root {
     padding: 14px;
     flex-grow: 1;
-    background-color: var(--color-bg-primary);
 }
 
 .section-label {

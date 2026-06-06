@@ -1,4 +1,5 @@
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -25,7 +26,11 @@ public class CreateEditPaletteView : VisualElement
     TextField _nameField;
     Label _nameError;
     Label _nameNotice;
+    
     VisualElement _tagContainer;
+    Button _tagGenerateBtn;
+    Label _tagError;
+    
     Slider _sliderR, _sliderG, _sliderB;
     Label _sliderRValue, _sliderGValue, _sliderBValue;
     TextField _hexField;
@@ -115,6 +120,9 @@ public class CreateEditPaletteView : VisualElement
             tagField.SetValueWithoutNotify("");
             RefreshTags();
         };
+        _tagGenerateBtn = container.Q<Button>("generateTagBtn");
+        _tagGenerateBtn.clicked += () => _ = GenerateTagsAsync();
+        _tagError = container.Q<Label>("tagError");
 
         _sliderRValue = container.Q<Label>("sliderRValue");
         _sliderGValue = container.Q<Label>("sliderGValue");
@@ -340,6 +348,31 @@ public class CreateEditPaletteView : VisualElement
 
         _rampSuccess.text = $"Success, image saved to {PaletteRampService.OutputFolder}";
         _rampSuccess.style.display = DisplayStyle.Flex;
+    }
+
+    async Task GenerateTagsAsync()
+    {
+        HideError(_tagError);
+        _tagGenerateBtn.SetEnabled(false);
+        TagResult result = await PaletteTagService.GenerateTagsAsync(_colors);
+        _tagGenerateBtn.SetEnabled(true);
+        
+        // fail, show the error and return
+        if (!result.success)
+        {
+            _tagError.text = result.error;
+            ShowError(_tagError);
+            return;
+        }
+        
+        //success add tags
+        foreach (var mood in result.moods)
+        {
+            if (_tags.Contains(mood))
+                continue;
+            _tags.Add(mood);
+        }
+        RefreshTags();
     }
 
     static List<ColorEntry> CloneColors(List<ColorEntry> colors)
