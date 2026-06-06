@@ -234,14 +234,19 @@ public class CreateEditPaletteView : VisualElement
         {
             int index = i;
             var color = _colors[i];
+            string hexCode = $"#{color.ToHex()}";
 
             var swatch = new VisualElement();
             swatch.AddToClassList("added-swatch");
             swatch.style.backgroundColor = color.ToUnityColor();
-            swatch.tooltip = $"#{color.ToHex()}\nRight Click to remove";
+            swatch.tooltip = $"#{hexCode}\nLeft Click to copy\nRight Click to remove";
 
             swatch.RegisterCallback<PointerDownEvent>(evt =>
             {
+                if (evt.button == 0)
+                {
+                    GUIUtility.systemCopyBuffer = hexCode;
+                }
                 if (evt.button == 1)
                 {
                     _colors.RemoveAt(index);
