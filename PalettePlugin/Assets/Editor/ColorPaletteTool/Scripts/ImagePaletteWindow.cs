@@ -73,7 +73,8 @@ public class ImagePaletteWindow : EditorWindow
         HideError();
         _createButton.style.display = DisplayStyle.None;
         _imageBytes = null;
-
+        
+        // validate url input
         string imageUrl = _urlField.value?.Trim();
         if (string.IsNullOrEmpty(imageUrl))
         {
@@ -82,20 +83,24 @@ public class ImagePaletteWindow : EditorWindow
         }
 
         SetBusy(true);
-
+        
+        // send request to image fetcher service
         string requestUrl = $"{FetchUrl}?image_url={UnityWebRequest.EscapeURL(imageUrl)}&width=300&fit=inside";
         using (var request = UnityWebRequest.Get(requestUrl))
         {
             await PaletteMicroserviceClient.SendAsync(request);
-
+            
+            // show error if failed
             if (request.result != UnityWebRequest.Result.Success)
             {
                 ShowError(PaletteMicroserviceClient.ReadError(request));
                 SetBusy(false);
                 return;
             }
-
+            
+            // save bytes and load preview
             _imageBytes = request.downloadHandler.data;
+            
             var texture = new Texture2D(2, 2);
             if (!texture.LoadImage(_imageBytes))
             {
@@ -103,8 +108,8 @@ public class ImagePaletteWindow : EditorWindow
                 SetBusy(false);
                 return;
             }
-
             _preview.image = texture;
+            
             _createButton.style.display = DisplayStyle.Flex;
         }
 
@@ -113,6 +118,7 @@ public class ImagePaletteWindow : EditorWindow
 
     async Task CreatePaletteAsync()
     {
+        // validate image
         if (_imageBytes == null)
         {
             ShowError("Fetch an image before creating a palette.");
@@ -121,23 +127,28 @@ public class ImagePaletteWindow : EditorWindow
 
         HideError();
         SetBusy(true);
-
+        
+        // build post form for the image extractor microservice
         var form = new WWWForm();
         form.AddBinaryData("image", _imageBytes, "palette_source.png", "image/png");
         form.AddField("count", "5");
-
+        
+        // send request to extractor
         using (var request = UnityWebRequest.Post(ExtractUrl, form))
         {
             await PaletteMicroserviceClient.SendAsync(request);
-
+            
+            // show error if failed
             if (request.result != UnityWebRequest.Result.Success)
             {
                 ShowError(PaletteMicroserviceClient.ReadError(request));
                 SetBusy(false);
                 return;
             }
-
+            
+            // parse response
             var response = JsonUtility.FromJson<ExtractColorsResponse>(request.downloadHandler.text);
+            
             if (response == null || response.colors == null || response.colors.Length == 0)
             {
                 ShowError("Image Extractor returned no colors.");

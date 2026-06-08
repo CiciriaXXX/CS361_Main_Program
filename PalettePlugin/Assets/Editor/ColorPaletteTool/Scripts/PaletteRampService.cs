@@ -18,11 +18,13 @@ public static class PaletteRampService
 
     public static async Task<RampResult> CreateRampAsync(string paletteName, List<ColorEntry> colors)
     {
+        // build request for ramp generation
         string json = JsonUtility.ToJson(new RampRequest
         {
             colors = colors.ConvertAll(c => "#" + c.ToHex()).ToArray()
         });
-
+        
+        // send  request and parse response
         using (var request = new UnityWebRequest(RampUrl, "POST"))
         {
             byte[] body = System.Text.Encoding.UTF8.GetBytes(json);

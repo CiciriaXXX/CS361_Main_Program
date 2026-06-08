@@ -17,12 +17,14 @@ public static class PaletteTagService
 
     public static async Task<TagResult> GenerateTagsAsync(List<ColorEntry> colors)
     {
+        // build  request colors(up to 10 colors)
         string[] valid_colors = colors.Take(MaxColorInput).Select(c => "#" + c.ToHex()).ToArray();
         string json = JsonUtility.ToJson(new TagRequest
         {
             colors = valid_colors
         });
-
+        
+        // send request and parse  response
         using (var request = new UnityWebRequest(TagUrl, "POST"))
         {
             byte[] body = System.Text.Encoding.UTF8.GetBytes(json);
@@ -31,10 +33,15 @@ public static class PaletteTagService
             request.SetRequestHeader("Content-Type", "application/json");
 
             await PaletteMicroserviceClient.SendAsync(request);
-
+            
+            // if request failed, return error
             if (request.result != UnityWebRequest.Result.Success)
                 return TagResult.Failed(PaletteMicroserviceClient.ReadError(request));
+            
+            // parse response
             var response = JsonUtility.FromJson<TagResponse>(request.downloadHandler.text);
+            
+            // if no moods returned, return error
             if (response == null || response.moods == null)
             {
                 return TagResult.Failed("Microservice returned an empty or invalid response.");

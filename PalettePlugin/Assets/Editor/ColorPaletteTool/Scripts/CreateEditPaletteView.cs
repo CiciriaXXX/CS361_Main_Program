@@ -245,7 +245,7 @@ public class CreateEditPaletteView : VisualElement
             {
                 if (evt.button == 0)
                 {
-                    GUIUtility.systemCopyBuffer = hexCode;
+                    GUIUtility.systemCopyBuffer = color.ToHex();
                 }
                 if (evt.button == 1)
                 {
