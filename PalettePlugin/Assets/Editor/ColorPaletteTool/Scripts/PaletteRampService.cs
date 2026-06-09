@@ -4,40 +4,34 @@ using System.IO;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Networking;
 
 /// <summary>
-/// Handles ramp generation and file output for the local Ramp Generator microservice.
+/// Handles ramp generation and file output inside Unity.
 /// </summary>
 public static class PaletteRampService
 {
-    const string RampUrl = "http://localhost:5001/ramp";
     const string RampFolder = "Assets/Texture/Ramp";
+    const int RampWidth = 256;
+    const int RampHeight = 1;
 
     public static string OutputFolder => RampFolder;
 
     public static async Task<RampResult> CreateRampAsync(string paletteName, List<ColorEntry> colors)
     {
-        // build request for ramp generation
-        string json = JsonUtility.ToJson(new RampRequest
+        await Task.Yield();
+
+        if (colors == null || colors.Count < 2)
+            return RampResult.Failed("At least 2 colors are required to create a ramp.");
+
+        try
         {
-            colors = colors.ConvertAll(c => "#" + c.ToHex()).ToArray()
-        });
-        
-        // send  request and parse response
-        using (var request = new UnityWebRequest(RampUrl, "POST"))
-        {
-            byte[] body = System.Text.Encoding.UTF8.GetBytes(json);
-            request.uploadHandler = new UploadHandlerRaw(body);
-            request.downloadHandler = new DownloadHandlerBuffer();
-            request.SetRequestHeader("Content-Type", "application/json");
+            var texture = GenerateRampTexture(colors);
+            byte[] pngBytes = texture.EncodeToPNG();
+            UnityEngine.Object.DestroyImmediate(texture);
 
-            await PaletteMicroserviceClient.SendAsync(request);
+            if (pngBytes == null || pngBytes.Length == 0)
+                return RampResult.Failed("Could not encode ramp texture.");
 
-            if (request.result != UnityWebRequest.Result.Success)
-                return RampResult.Failed(PaletteMicroserviceClient.ReadError(request));
-
-            byte[] pngBytes = request.downloadHandler.data;
             string assetPath = GetUniqueRampPath(paletteName);
             string fullPath = Path.GetFullPath(assetPath);
             Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
@@ -46,6 +40,28 @@ public static class PaletteRampService
 
             return RampResult.Succeeded(assetPath, pngBytes);
         }
+        catch (Exception ex)
+        {
+            return RampResult.Failed(ex.Message);
+        }
+    }
+
+    static Texture2D GenerateRampTexture(List<ColorEntry> colors)
+    {
+        var texture = new Texture2D(RampWidth, RampHeight, TextureFormat.RGBA32, false);
+        int stopCount = colors.Count;
+
+        for (int x = 0; x < RampWidth; x++)
+        {
+            float position = stopCount == 1 ? 0f : (x / (float)(RampWidth - 1)) * (stopCount - 1);
+            int left = Mathf.Clamp(Mathf.FloorToInt(position), 0, stopCount - 2);
+            float t = position - left;
+            Color color = Color.Lerp(colors[left].ToUnityColor(), colors[left + 1].ToUnityColor(), t);
+            texture.SetPixel(x, 0, color);
+        }
+
+        texture.Apply();
+        return texture;
     }
 
     static string GetUniqueRampPath(string paletteName)
@@ -69,12 +85,6 @@ public static class PaletteRampService
             fileName = fileName.Replace(invalid, '_');
 
         return string.IsNullOrWhiteSpace(fileName) ? "palette_ramp" : fileName.Trim();
-    }
-
-    [Serializable]
-    class RampRequest
-    {
-        public string[] colors;
     }
 }
 

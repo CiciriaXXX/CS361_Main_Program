@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -8,13 +8,12 @@ using UnityEngine.UIElements;
 
 /// <summary>
 /// Editor popup for creating a palette from an image URL.
-/// It fetches a preview image, then sends the image bytes to the extractor service.
 /// </summary>
 public class ImagePaletteWindow : EditorWindow
 {
-    const string FetchUrl = "http://localhost:5100/fetch";
-    const string ExtractUrl = "http://localhost:5002/extract";
     const string UssPath = "Assets/Editor/ColorPaletteTool/UI/USS/ColorPaletteTool.uss";
+    const int PaletteColorCount = 5;
+    const int MaxSamples = 4096;
 
     ColorPaletteTool _owner;
     TextField _urlField;
@@ -22,7 +21,7 @@ public class ImagePaletteWindow : EditorWindow
     Button _fetchButton;
     Button _createButton;
     Image _preview;
-    byte[] _imageBytes;
+    Texture2D _sourceTexture;
 
     public static void Open(ColorPaletteTool owner)
     {
@@ -63,7 +62,7 @@ public class ImagePaletteWindow : EditorWindow
         _preview.AddToClassList("image-preview");
         rootVisualElement.Add(_preview);
 
-        _createButton = new Button(() => _ = CreatePaletteAsync()) { text = "Create Palette" };
+        _createButton = new Button(CreatePalette) { text = "Create Palette" };
         _createButton.style.display = DisplayStyle.None;
         rootVisualElement.Add(_createButton);
     }
@@ -72,9 +71,8 @@ public class ImagePaletteWindow : EditorWindow
     {
         HideError();
         _createButton.style.display = DisplayStyle.None;
-        _imageBytes = null;
-        
-        // validate url input
+        SetSourceTexture(null);
+
         string imageUrl = _urlField.value?.Trim();
         if (string.IsNullOrEmpty(imageUrl))
         {
@@ -82,89 +80,137 @@ public class ImagePaletteWindow : EditorWindow
             return;
         }
 
-        SetBusy(true);
-        
-        // send request to image fetcher service
-        string requestUrl = $"{FetchUrl}?image_url={UnityWebRequest.EscapeURL(imageUrl)}&width=300&fit=inside";
-        using (var request = UnityWebRequest.Get(requestUrl))
+        if (!imageUrl.StartsWith("http://") && !imageUrl.StartsWith("https://"))
         {
-            await PaletteMicroserviceClient.SendAsync(request);
-            
-            // show error if failed
+            ShowError("Image URL must start with http:// or https://.");
+            return;
+        }
+
+        SetBusy(true);
+
+        using (var request = UnityWebRequest.Get(imageUrl))
+        {
+            request.timeout = 10;
+            await SendAsync(request);
+
             if (request.result != UnityWebRequest.Result.Success)
             {
-                ShowError(PaletteMicroserviceClient.ReadError(request));
+                ShowError(string.IsNullOrEmpty(request.error) ? "Could not fetch image." : request.error);
                 SetBusy(false);
                 return;
             }
-            
-            // save bytes and load preview
-            _imageBytes = request.downloadHandler.data;
-            
+
             var texture = new Texture2D(2, 2);
-            if (!texture.LoadImage(_imageBytes))
+            if (!texture.LoadImage(request.downloadHandler.data))
             {
+                DestroyImmediate(texture);
                 ShowError("Fetched data is not a valid image.");
                 SetBusy(false);
                 return;
             }
-            _preview.image = texture;
-            
+
+            SetSourceTexture(texture);
+            _preview.image = _sourceTexture;
             _createButton.style.display = DisplayStyle.Flex;
         }
 
         SetBusy(false);
     }
 
-    async Task CreatePaletteAsync()
+    void CreatePalette()
     {
-        // validate image
-        if (_imageBytes == null)
+        if (_sourceTexture == null)
         {
             ShowError("Fetch an image before creating a palette.");
             return;
         }
 
         HideError();
-        SetBusy(true);
-        
-        // build post form for the image extractor microservice
-        var form = new WWWForm();
-        form.AddBinaryData("image", _imageBytes, "palette_source.png", "image/png");
-        form.AddField("count", "5");
-        
-        // send request to extractor
-        using (var request = UnityWebRequest.Post(ExtractUrl, form))
+
+        var colors = ExtractDominantColors(_sourceTexture, PaletteColorCount);
+        if (colors.Count == 0)
         {
-            await PaletteMicroserviceClient.SendAsync(request);
-            
-            // show error if failed
-            if (request.result != UnityWebRequest.Result.Success)
-            {
-                ShowError(PaletteMicroserviceClient.ReadError(request));
-                SetBusy(false);
-                return;
-            }
-            
-            // parse response
-            var response = JsonUtility.FromJson<ExtractColorsResponse>(request.downloadHandler.text);
-            
-            if (response == null || response.colors == null || response.colors.Length == 0)
-            {
-                ShowError("Image Extractor returned no colors.");
-                SetBusy(false);
-                return;
-            }
-
-            var colors = new List<ColorEntry>();
-            foreach (var hex in response.colors)
-                colors.Add(ColorEntry.FromHex(hex));
-
-            _owner.ShowCreatePaletteFromColors("", colors);
-            Close();
+            ShowError("No visible colors were found in this image.");
+            return;
         }
 
-        SetBusy(false);
+        _owner.ShowCreatePaletteFromColors("", colors);
+        Close();
+    }
+
+    static async Task SendAsync(UnityWebRequest request)
+    {
+        var operation = request.SendWebRequest();
+        while (!operation.isDone)
+            await Task.Yield();
+    }
+
+    static List<ColorEntry> ExtractDominantColors(Texture2D texture, int count)
+    {
+        Color32[] pixels = texture.GetPixels32();
+        int stride = Mathf.Max(1, pixels.Length / MaxSamples);
+        var buckets = new Dictionary<int, ColorBucket>();
+
+        for (int i = 0; i < pixels.Length; i += stride)
+        {
+            Color32 pixel = pixels[i];
+            if (pixel.a < 16)
+                continue;
+
+            int r = pixel.r >> 4;
+            int g = pixel.g >> 4;
+            int b = pixel.b >> 4;
+            int key = (r << 8) | (g << 4) | b;
+
+            if (!buckets.TryGetValue(key, out var bucket))
+                bucket = new ColorBucket();
+
+            bucket.Add(pixel);
+            buckets[key] = bucket;
+        }
+
+        var ordered = buckets.Values.OrderByDescending(bucket => bucket.Count).ToList();
+        var selected = new List<ColorEntry>();
+
+        foreach (var bucket in ordered)
+        {
+            var candidate = bucket.ToColorEntry();
+            if (selected.All(existing => ColorDistance(existing, candidate) > 35f))
+                selected.Add(candidate);
+
+            if (selected.Count == count)
+                return selected;
+        }
+
+        foreach (var bucket in ordered)
+        {
+            if (selected.Count == count)
+                break;
+
+            var candidate = bucket.ToColorEntry();
+            if (!selected.Any(existing => existing.ToHex() == candidate.ToHex()))
+                selected.Add(candidate);
+        }
+
+        return selected;
+    }
+
+    static float ColorDistance(ColorEntry a, ColorEntry b)
+    {
+        float dr = a.r - b.r;
+        float dg = a.g - b.g;
+        float db = a.b - b.b;
+        return Mathf.Sqrt(dr * dr + dg * dg + db * db);
+    }
+
+    void SetSourceTexture(Texture2D texture)
+    {
+        if (_sourceTexture != null)
+            DestroyImmediate(_sourceTexture);
+
+        _sourceTexture = texture;
+        if (_preview != null)
+            _preview.image = texture;
     }
 
     void SetBusy(bool busy)
@@ -184,9 +230,34 @@ public class ImagePaletteWindow : EditorWindow
         _errorLabel.RemoveFromClassList("error-label--visible");
     }
 
-    [Serializable]
-    class ExtractColorsResponse
+    void OnDisable()
     {
-        public string[] colors;
+        SetSourceTexture(null);
+    }
+
+    class ColorBucket
+    {
+        public int Count { get; private set; }
+        int _r;
+        int _g;
+        int _b;
+
+        public void Add(Color32 color)
+        {
+            Count++;
+            _r += color.r;
+            _g += color.g;
+            _b += color.b;
+        }
+
+        public ColorEntry ToColorEntry()
+        {
+            return new ColorEntry
+            {
+                r = _r / (float)Count,
+                g = _g / (float)Count,
+                b = _b / (float)Count
+            };
+        }
     }
 }

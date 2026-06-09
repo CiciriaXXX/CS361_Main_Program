@@ -324,7 +324,7 @@ public class CreateEditPaletteView : VisualElement
 
     async Task CreateRampAsync()
     {
-        // The view validates UI state; PaletteRampService owns the microservice call and file output.
+        // The view validates UI state; PaletteRampService owns ramp generation and file output.
         HideError(_rampError);
         _rampSuccess.style.display = DisplayStyle.None;
 

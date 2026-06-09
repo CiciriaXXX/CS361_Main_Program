@@ -1,66 +1,75 @@
-﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Networking;
 
 /// <summary>
-/// Handles tag generation and output for the local Tag Generator microservice.
+/// Generates mood tags from palette colors inside Unity.
 /// </summary>
 public static class PaletteTagService
 {
-    const string TagUrl = "http://localhost:5300/analyze";
     const int MaxColorInput = 10;
 
     public static async Task<TagResult> GenerateTagsAsync(List<ColorEntry> colors)
     {
-        // build  request colors(up to 10 colors)
-        string[] valid_colors = colors.Take(MaxColorInput).Select(c => "#" + c.ToHex()).ToArray();
-        string json = JsonUtility.ToJson(new TagRequest
-        {
-            colors = valid_colors
-        });
-        
-        // send request and parse  response
-        using (var request = new UnityWebRequest(TagUrl, "POST"))
-        {
-            byte[] body = System.Text.Encoding.UTF8.GetBytes(json);
-            request.uploadHandler = new UploadHandlerRaw(body);
-            request.downloadHandler = new DownloadHandlerBuffer();
-            request.SetRequestHeader("Content-Type", "application/json");
+        await Task.Yield();
 
-            await PaletteMicroserviceClient.SendAsync(request);
-            
-            // if request failed, return error
-            if (request.result != UnityWebRequest.Result.Success)
-                return TagResult.Failed(PaletteMicroserviceClient.ReadError(request));
-            
-            // parse response
-            var response = JsonUtility.FromJson<TagResponse>(request.downloadHandler.text);
-            
-            // if no moods returned, return error
-            if (response == null || response.moods == null)
+        if (colors == null || colors.Count == 0)
+            return TagResult.Failed("Add at least one color before generating tags.");
+
+        string[] moods = AnalyzeMood(colors.Take(MaxColorInput)).ToArray();
+        return TagResult.Succeeded(moods.Length == 0 ? new[] { "neutral" } : moods);
+    }
+
+    static IEnumerable<string> AnalyzeMood(IEnumerable<ColorEntry> colors)
+    {
+        var moods = new HashSet<string>();
+
+        foreach (var color in colors)
+        {
+            int r = Mathf.RoundToInt(color.r);
+            int g = Mathf.RoundToInt(color.g);
+            int b = Mathf.RoundToInt(color.b);
+            float brightness = (r * 299f + g * 587f + b * 114f) / 1000f;
+
+            if (brightness < 60f)
             {
-                return TagResult.Failed("Microservice returned an empty or invalid response.");
+                if (r > g && r > b)
+                    moods.Add("gothic");
+                else if (b > r && b > g)
+                    moods.Add("mysterious");
+                else
+                    moods.Add("noir");
             }
-
-            return TagResult.Succeeded(response.moods);
+            else if (brightness < 150f)
+            {
+                if (r > g && r > b)
+                    moods.Add("romantic");
+                else if (g > r && g > b)
+                    moods.Add("natural");
+                else if (b > r && b > g)
+                    moods.Add("serene");
+                else if (r > 150 && g > 150)
+                    moods.Add("earthy");
+                else
+                    moods.Add("mysterious");
+            }
+            else
+            {
+                if (r > 200 && g < 100 && b < 100)
+                    moods.Add("energetic");
+                else if (r > 200 && g > 150)
+                    moods.Add("whimsical");
+                else if (b > 180 && r < 150)
+                    moods.Add("serene");
+                else if (r > 180 && b > 180 && g < 150)
+                    moods.Add("fantasy");
+                else
+                    moods.Add("whimsical");
+            }
         }
-    }
-    
 
-    [Serializable]
-    public class TagRequest
-    {
-        public string[] colors;
-    }
-    [Serializable]
-    public class TagResponse
-    {
-        public string[] moods;
+        return moods;
     }
 }
 
